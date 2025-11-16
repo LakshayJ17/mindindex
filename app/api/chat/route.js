@@ -76,7 +76,7 @@ export async function POST(req) {
         return NextResponse.json(
             {
                 success: true,
-                answer,
+                message : answer,
                 sources: results.map(
                     r => ({
                         text: (r.pageContent || "").slice(0, 200) + "...",
