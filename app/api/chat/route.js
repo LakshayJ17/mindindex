@@ -1,9 +1,11 @@
 import { auth } from "@clerk/nextjs/server";
-import { Pinecone } from "@pinecone-database/pinecone"
-import { NextResponse } from "next/server"
+import { Pinecone } from "@pinecone-database/pinecone";
+import { NextResponse } from "next/server";
 import { OpenAIEmbeddings } from "@langchain/openai";
 import { PineconeStore } from "@langchain/pinecone";
 import OpenAI from "openai";
+import { connectDB } from "@/lib/db";
+import { Chat } from "@/models/chat.model";
 
 
 export async function POST(req) {
@@ -71,20 +73,36 @@ export async function POST(req) {
             ]
         })
 
-        const answer = completion.choices[0].message.content
+        const answer = completion.choices[0].message.content;
 
-        return NextResponse.json(
-            {
-                success: true,
-                message: answer,
-                sources: results.map(
-                    r => ({
-                        text: (r.pageContent || "").slice(0, 200) + "...",
-                        metadata: r.metadata
-                    })
-                )
+        try {
+            await connectDB();
+            const chat = await Chat.findOne({ userId });
+            if (!chat) {
+                await Chat.create({
+                    userId,
+                    messages: [
+                        { role: "user", content: query },
+                        { role: "assistant", content: answer }
+                    ]
+                });
+            } else {
+                chat.messages.push({ role: "user", content: query });
+                chat.messages.push({ role: "assistant", content: answer });
+                await chat.save();
             }
-        )
+        } catch (error) {
+            console.error("CHAT PERSIST ERROR:", error);
+        }
+
+        return NextResponse.json({
+            success: true,
+            message: answer,
+            sources: results.map(r => ({
+                text: (r.pageContent || "").slice(0, 200) + "...",
+                metadata: r.metadata
+            }))
+        });
     } catch (error) {
         console.log("Error : ", error);
         return NextResponse.json(
@@ -96,4 +114,22 @@ export async function POST(req) {
         )
     }
 
+}
+
+export async function GET() {
+    try {
+        const { userId } = await auth();
+        if (!userId) {
+            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+        }
+        await connectDB();
+        const chat = await Chat.findOne({ userId });
+        return NextResponse.json({
+            success: true,
+            messages: chat?.messages || []
+        });
+    } catch (error) {
+        console.error("GET CHAT HISTORY ERROR:", error);
+        return NextResponse.json({ success: false, messages: [], message: "Failed to load history" }, { status: 500 });
+    }
 }

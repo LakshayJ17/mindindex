@@ -28,6 +28,26 @@ export default function Chat() {
     }
   }, []);
 
+  // Load existing chat history
+  useEffect(() => {
+    async function loadHistory() {
+      try {
+        const res = await fetch("/api/chat", { method: "GET" });
+        if (!res.ok) return;
+
+        const data = await res.json();
+        if (data.success && Array.isArray(data.messages)) {
+          setMessages(
+            data.messages.map((m) => ({ role: m.role, content: m.content }))
+          );
+        }
+      } catch (err) {
+        console.log("Failed to load history", err);
+      }
+    }
+    if (isLoaded && isSignedIn) loadHistory();
+  }, [isLoaded, isSignedIn]);
+
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
@@ -106,7 +126,10 @@ export default function Chat() {
           )}
           <div ref={messagesEndRef} />
         </div>
-        <form onSubmit={handleSubmit} className="mt-auto sticky bottom-0 left-0 right-0 bg-neutral-900/95 backdrop-blur border-t-4 border-white pt-3 pb-3 sm:pb-5">
+        <form
+          onSubmit={handleSubmit}
+          className="mt-auto sticky bottom-0 left-0 right-0 bg-neutral-900/95 backdrop-blur border-t-4 border-white pt-3 pb-3 sm:pb-5"
+        >
           <div className="flex gap-2 sm:gap-3 w-full">
             <input
               type="text"
