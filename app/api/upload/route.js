@@ -1,5 +1,3 @@
-export const runtime = "nodejs";
-
 import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 import fs from "fs";
@@ -15,9 +13,9 @@ export async function POST(req) {
     try {
         const { userId } = await auth();
         if (!userId) {
-            return NextResponse.json({ 
-                success: false, 
-                message: "Please sign in to upload files" 
+            return NextResponse.json({
+                success: false,
+                message: "Please sign in to upload files"
             }, { status: 401 });
         }
 
@@ -34,12 +32,11 @@ export async function POST(req) {
 
         // SAVE FILE TEMP
         const buffer = Buffer.from(await file.arrayBuffer());
-        const uploadsDir = path.join(process.cwd(), "uploads");
-        if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir);
 
-        const filePath = path.join(uploadsDir, `${Date.now()}-${file.name}`);
+        const filePath = `/tmp/${Date.now()}-${file.name}`;
         fs.writeFileSync(filePath, buffer);
 
+        
         // DETECT EXT
         const ext = path.extname(file.name).toLowerCase();
 
