@@ -11,9 +11,22 @@ export default function Chat() {
   const [query, setQuery] = useState("");
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [namespace, setNamespace] = useState("default");
   const messagesEndRef = useRef(null);
 
   const { isLoaded, isSignedIn } = useUser();
+
+  useEffect(() => {
+    try {
+      const cookieNs = document.cookie
+        .split("; ")
+        .find((c) => c.startsWith("mindindex_ns="))
+        ?.split("=")[1];
+      if (cookieNs) setNamespace(cookieNs);
+    } catch (e) {
+      console.log("error fetching cookie : ", e);
+    }
+  }, []);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -40,7 +53,7 @@ export default function Chat() {
       const res = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ query }),
+        body: JSON.stringify({ query, namespace }),
       });
 
       const data = await res.json();
@@ -75,16 +88,15 @@ export default function Chat() {
   return (
     <div className="min-h-screen bg-neutral-900 text-white flex flex-col">
       <Header redirectTo={"upload"} />
-
-      <div className="flex-1 container mx-auto px-6 py-8 flex flex-col max-w-4xl">
-        <div className="flex-1 overflow-y-auto mb-6 space-y-4">
+      <div className="flex-1 container mx-auto px-3 sm:px-5 py-6 sm:py-8 flex flex-col max-w-3xl">
+        <div className="flex-1 overflow-y-auto mb-5 space-y-3">
           {messages.length === 0 ? (
             <div className="flex items-center justify-center h-full">
               <div className="text-center">
-                <h2 className="text-3xl font-black uppercase mb-4 text-slate-300">
+                <h2 className="text-xl sm:text-2xl font-extrabold uppercase mb-3 text-slate-300 tracking-tight">
                   Start Chatting
                 </h2>
-                <p className="text-lg font-bold text-slate-400">
+                <p className="text-sm sm:text-base font-medium text-slate-400 leading-relaxed">
                   Ask anything about your uploaded documents
                 </p>
               </div>
@@ -94,23 +106,22 @@ export default function Chat() {
           )}
           <div ref={messagesEndRef} />
         </div>
-
-        <form onSubmit={handleSubmit}>
-          <div className="flex gap-4">
+        <form onSubmit={handleSubmit} className="mt-auto sticky bottom-0 left-0 right-0 bg-neutral-900/95 backdrop-blur border-t-4 border-white pt-3 pb-3 sm:pb-5">
+          <div className="flex gap-2 sm:gap-3 w-full">
             <input
               type="text"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Ask a question..."
-              className="flex-1 px-4 py-3 bg-neutral-700 border-2 border-neutral-600 text-white font-bold placeholder:text-slate-400 focus:outline-none focus:border-white"
+              className="flex-1 px-3 py-3 bg-neutral-700 border-2 border-neutral-600 text-white font-medium placeholder:text-slate-400 focus:outline-none focus:border-white text-xs sm:text-sm"
               disabled={loading}
             />
             <button
               type="submit"
               disabled={!query.trim() || loading}
-              className="px-6 py-3 bg-white text-neutral-900 font-black uppercase tracking-tight border-4 border-white hover:translate-x-1 hover:translate-y-1 transition-transform shadow-[4px_4px_0px_0px_rgba(255,255,255,1)] hover:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)] disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+              className="px-4 sm:px-5 py-3 bg-white text-neutral-900 font-extrabold uppercase tracking-tight border-4 border-white shadow-[3px_3px_0px_0px_rgba(255,255,255,1)] hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)] disabled:opacity-50 disabled:cursor-not-allowed disabled:translate-x-0 disabled:translate-y-0 transition-transform text-xs sm:text-sm"
             >
-              {loading ? "..." : <Send size={20} />}
+              {loading ? "..." : <Send size={16} />}
             </button>
           </div>
         </form>

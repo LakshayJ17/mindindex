@@ -22,12 +22,16 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <ClerkProvider>
-
       <html lang="en">
+        <head>
+          <meta name="viewport" content="width=device-width, initial-scale=1" />
+        </head>
         <body
-          className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+          className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen flex flex-col bg-neutral-900 text-white`}
         >
-          {children}
+          <main className="flex-1 w-full">
+            {children}
+          </main>
         </body>
       </html>
     </ClerkProvider>

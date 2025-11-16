@@ -13,7 +13,7 @@ export async function POST(req) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
-        const { query, namespace = "default" } = await req.json()
+        const { query, namespace } = await req.json()
         if (!query || query.trim().length === 0) {
             return NextResponse.json({
                 success: false,
@@ -76,7 +76,7 @@ export async function POST(req) {
         return NextResponse.json(
             {
                 success: true,
-                message : answer,
+                message: answer,
                 sources: results.map(
                     r => ({
                         text: (r.pageContent || "").slice(0, 200) + "...",

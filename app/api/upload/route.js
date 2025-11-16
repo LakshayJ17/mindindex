@@ -123,12 +123,21 @@ export async function POST(req) {
         // DELETE TEMP FILE
         fs.unlinkSync(filePath);
 
-        return NextResponse.json({
+        const res = NextResponse.json({
             success: true,
             message: `Document uploaded successfully! Ready to chat.`,
             namespace,
             filename: fileBase,
         });
+        // Persist namespace via cookie only (no Clerk metadata)
+        res.cookies.set("mindindex_ns", namespace, {
+            path: "/",
+            sameSite: "lax",
+            secure: process.env.NODE_ENV === "production",
+            httpOnly: false,
+            maxAge: 60 * 60 * 24 * 7,
+        });
+        return res;
 
     } catch (err) {
         console.error("UPLOAD ERROR:", err);

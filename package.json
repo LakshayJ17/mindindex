@@ -21,6 +21,7 @@
     "langchain": "^1.0.4",
     "lucide-react": "^0.553.0",
     "mammoth": "^1.11.0",
+    "mongoose": "^8.19.4",
     "next": "16.0.3",
     "officeparser": "^5.2.2",
     "pdf-parse": "^1.1.4",
